@@ -12,7 +12,7 @@ def num_to_groups(num, divisor):
     return arr
 
 def train_classifier_free_guidance(epochs, model, dataloader, optimizer, device, diffusion,
-                                   batch_size, channels, results_folder, save_and_sample_every=100,
+                                   results_folder, save_and_sample_every=100, cond_scale=3.,
                                    losses=[]):
     best_model = None
     best_loss = float("inf")
@@ -38,17 +38,18 @@ def train_classifier_free_guidance(epochs, model, dataloader, optimizer, device,
             loss.backward()
             optimizer.step()
 
-            # save generated images
-            if step != 0 and step % save_and_sample_every == 0:
-                milestone = step // save_and_sample_every
-                batches = num_to_groups(4, batch_size)
-                all_images_list = list(map(lambda n: diffusion.sample(model, batch_size=n, channels=channels), batches))
-                all_images = torch.cat(all_images_list, dim=0)
-                all_images = (all_images + 1) * 0.5
-                save_image(all_images, str(results_folder / f'sample-{milestone}.png'), nrow = 6)
+            # # save generated images
+            # if step != 0 and step % save_and_sample_every == 0:
+            #     milestone = step // save_and_sample_every
+            #     batches = num_to_groups(4, batch_size)
+            #     all_images_list = list(map(lambda n: diffusion.sample(classes=image_classes, cond_scale=cond_scale), batches))
+            #     all_images = torch.cat(all_images_list, dim=0)
+            #     all_images = (all_images + 1) * 0.5
+            #     save_image(all_images, str(results_folder / f'sample-{milestone}.png'), nrow = 6)
 
     print("Finished training, saving model")
+    timestamp = int(time.time())
     # Save model with timestamp
-    torch.save(best_model.state_dict(), str(results_folder / f"model-{time.time()}.pt"))
+    torch.save(best_model.state_dict(), str(results_folder / f"model-{timestamp}.pt"))
     # Save losses with timestamp
-    torch.save(losses, str(results_folder / f"losses-{time.time()}.pt"))
+    torch.save(losses, str(results_folder / f"losses-{timestamp}.pt"))
