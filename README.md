@@ -4,3 +4,6 @@ When constructing the Unet, need the number of resnert blocks to be divisible by
 
 xray dataset from: https://huggingface.co/datasets/keremberke/chest-xray-classification
 fashion mnist from: https://huggingface.co/datasets/fashion_mnist
+
+
+generative-adversarial-network.png source: https://www.kdnuggets.com/2017/01/generative-adversarial-networks-hot-topic-machine-learning.html

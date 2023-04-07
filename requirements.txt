@@ -2,5 +2,5 @@ datasets
 denoising_diffusion_pytorch
 torch
 torchvision
-etc
 matplotlib
+pytorch-fid==0.3.0
