@@ -7,3 +7,7 @@ fashion mnist from: https://huggingface.co/datasets/fashion_mnist
 
 
 generative-adversarial-network.png source: https://www.kdnuggets.com/2017/01/generative-adversarial-networks-hot-topic-machine-learning.html
+
+
+# Diagrams
+https://www.figma.com/file/XhWmmWcprQTY6qwCUSqa54/Diagramming-101-(Community)-(Copy)?node-id=0-1&t=ANHMtjONbsxHJiRp-0
