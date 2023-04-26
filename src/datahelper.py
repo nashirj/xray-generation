@@ -49,12 +49,12 @@ def load_fashion_mnist_from_torch(batch_size=128):
 
     return dataloader
 
-def load_xray():
+def load_xray(transform=default_transform()):
     # load dataset from the hub
     dataset = load_dataset("keremberke/chest-xray-classification", "full")
     batch_size = 128
     # Keep labels so we can apply classifier-free guidance
-    transformed_dataset = dataset.with_transform(transforms)
+    transformed_dataset = dataset.with_transform(transform)
 
     train_set = ConcatDataset([
         transformed_dataset["train"],
