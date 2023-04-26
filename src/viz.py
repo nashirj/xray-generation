@@ -7,6 +7,26 @@ import seaborn as sns
 import torch
 from torchvision import transforms
 
+
+def plot_generated_images(sampled_images, img_classes, label_map, save_path=None, show=False):
+    assert len(sampled_images) == len(img_classes)
+    # plot sampled images
+    rows = len(sampled_images) // 5
+    fig, axs = plt.subplots(rows, 5, figsize=(25, 5))
+    for i, ax in enumerate(axs.flatten()):
+        ax.imshow(sampled_images[i].squeeze(), cmap='gray')
+        ax.set_title(f"Class: {label_map[img_classes[i]]}")
+        ax.axis('off')
+
+    if save_path:
+        plt.savefig(save_path)
+
+    if show:
+        plt.show()
+    else:
+        plt.close()
+
+
 def imshow(inp, mean, std, title=None):
     """Imshow for Tensor."""
     inp = inp.numpy().transpose((1, 2, 0))
@@ -15,7 +35,6 @@ def imshow(inp, mean, std, title=None):
     plt.imshow(inp)
     if title is not None:
         plt.title(title)
-    # plt.pause(0.001)  # pause a bit so that plots are updated
 
 
 def show_misclassified_images(misclassified_images, class_names, mean, std, title, save_dir="plots"):

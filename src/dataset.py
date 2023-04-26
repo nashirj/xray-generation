@@ -6,69 +6,141 @@ import torchvision.datasets as datasets
 import torch
 from torch.utils.data import WeightedRandomSampler
 
-def get_augmented_transforms(mean, std):
-    # Data augmentation and normalization for training
-    # Just normalization for validation
-    data_transforms = {
+def get_downscale_transforms(mean, std, load_as_rgb=True):
+    if load_as_rgb:
+        return {
+            'train': transforms.Compose([
+                transforms.RandomResizedCrop(224),
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomAffine(degrees=30, translate=(0.1, 0.1)),
+                transforms.Resize(28),
+                transforms.ToTensor(),
+                transforms.Normalize(mean, std)
+            ]),
+            'val': transforms.Compose([
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                transforms.Resize(28),
+                transforms.ToTensor(),
+                transforms.Normalize(mean, std)
+            ]),
+            'test': transforms.Compose([
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                transforms.Resize(28),
+                transforms.ToTensor(),
+                transforms.Normalize(mean, std)
+            ]),
+        }
+    return {
         'train': transforms.Compose([
+            transforms.Grayscale(num_output_channels=1),
             transforms.RandomResizedCrop(224),
             transforms.RandomHorizontalFlip(),
             transforms.RandomAffine(degrees=30, translate=(0.1, 0.1)),
+            transforms.Resize(28),
             transforms.ToTensor(),
             transforms.Normalize(mean, std)
         ]),
         'val': transforms.Compose([
+            transforms.Grayscale(num_output_channels=1),
             transforms.Resize(256),
             transforms.CenterCrop(224),
+            transforms.Resize(28),
             transforms.ToTensor(),
             transforms.Normalize(mean, std)
         ]),
         'test': transforms.Compose([
+            transforms.Grayscale(num_output_channels=1),
             transforms.Resize(256),
             transforms.CenterCrop(224),
+            transforms.Resize(28),
             transforms.ToTensor(),
             transforms.Normalize(mean, std)
         ]),
     }
-    return data_transforms
 
-def get_baseline_transforms(mean, std):
-    # Data augmentation and normalization for training
-    # Just normalization for validation
-    data_transforms = {
-        'train': transforms.Compose([
-            transforms.RandomResizedCrop(224),
-            transforms.ToTensor(),
-            transforms.Normalize(mean, std)
-        ]),
-        'val': transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            transforms.Normalize(mean, std)
-        ]),
-        'test': transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            transforms.Normalize(mean, std)
-        ]),
-    }
-    return data_transforms
+# def get_augmented_transforms(mean, std):
+#     # Data augmentation and normalization for training
+#     # Just normalization for validation
+#     data_transforms = {
+#         'train': transforms.Compose([
+#             transforms.RandomResizedCrop(224),
+#             transforms.RandomHorizontalFlip(),
+#             transforms.RandomAffine(degrees=30, translate=(0.1, 0.1)),
+#             transforms.ToTensor(),
+#             transforms.Normalize(mean, std)
+#         ]),
+#         'val': transforms.Compose([
+#             transforms.Resize(256),
+#             transforms.CenterCrop(224),
+#             transforms.ToTensor(),
+#             transforms.Normalize(mean, std)
+#         ]),
+#         'test': transforms.Compose([
+#             transforms.Resize(256),
+#             transforms.CenterCrop(224),
+#             transforms.ToTensor(),
+#             transforms.Normalize(mean, std)
+#         ]),
+#     }
+#     return data_transforms
+
+# def get_baseline_transforms(mean, std):
+#     # Data augmentation and normalization for training
+#     # Just normalization for validation
+#     data_transforms = {
+#         'train': transforms.Compose([
+#             transforms.RandomResizedCrop(224),
+#             transforms.ToTensor(),
+#             transforms.Normalize(mean, std)
+#         ]),
+#         'val': transforms.Compose([
+#             transforms.Resize(256),
+#             transforms.CenterCrop(224),
+#             transforms.ToTensor(),
+#             transforms.Normalize(mean, std)
+#         ]),
+#         'test': transforms.Compose([
+#             transforms.Resize(256),
+#             transforms.CenterCrop(224),
+#             transforms.ToTensor(),
+#             transforms.Normalize(mean, std)
+#         ]),
+#     }
+#     return data_transforms
 
 
-def default_transform():
+def default_transform(load_as_rgb=True):
+    if load_as_rgb:
+        return {
+            'train': transforms.Compose([
+                transforms.RandomResizedCrop(224),
+                transforms.ToTensor()
+            ]),
+            'val': transforms.Compose([
+                transforms.Resize(224),
+                transforms.ToTensor()
+            ]),
+            'test': transforms.Compose([
+                transforms.Resize(224),
+                transforms.ToTensor()
+            ]),
+        }
     return {
         'train': transforms.Compose([
             transforms.RandomResizedCrop(224),
+            transforms.Grayscale(num_output_channels=1),
             transforms.ToTensor()
         ]),
         'val': transforms.Compose([
             transforms.Resize(224),
+            transforms.Grayscale(num_output_channels=1),
             transforms.ToTensor()
         ]),
         'test': transforms.Compose([
             transforms.Resize(224),
+            transforms.Grayscale(num_output_channels=1),
             transforms.ToTensor()
         ]),
     }
@@ -92,7 +164,7 @@ def load_oversampled_xray_data(data_transforms=None):
 
     # Redistribute training/validation samples to increase the size of the validation set
     # such that 80% of the data is used for training and 20% for validation
-    all_train_data = torch.utils.data.ConcatDataset([initial_train_set, initial_val_set])
+    all_train_data = torch.utils.dataDown.ConcatDataset([initial_train_set, initial_val_set])
     train_size = int(0.8 * len(all_train_data))
     val_size = len(all_train_data) - train_size
     train_data, val_data = torch.utils.data.random_split(all_train_data, [train_size, val_size])
@@ -118,9 +190,9 @@ def load_oversampled_xray_data(data_transforms=None):
     return dataloaders, dataset_sizes, class_names
 
 
-def load_xray_data(data_dir='data/chest_xray', data_transforms=None):
+def load_xray_data(data_dir='data/chest_xray', data_transforms=None, batch_size=1, load_as_rgb=True, return_val_set=True):
     if data_transforms is None:
-        data_transforms = default_transform()
+        data_transforms = default_transform(load_as_rgb)
 
     initial_train_set = datasets.ImageFolder(os.path.join(data_dir, 'train'), data_transforms['train'])
     class_names = initial_train_set.classes
@@ -130,15 +202,23 @@ def load_xray_data(data_dir='data/chest_xray', data_transforms=None):
     # Redistribute training/validation samples to increase the size of the validation set
     # such that 80% of the data is used for training and 20% for validation
     all_train_data = torch.utils.data.ConcatDataset([initial_train_set, initial_val_set])
-    train_size = int(0.8 * len(all_train_data))
-    val_size = len(all_train_data) - train_size
-    train_set, val_set = torch.utils.data.random_split(all_train_data, [train_size, val_size])
 
-    image_datasets = {'train': train_set, 'val': val_set, 'test': test_set}
-    dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=4,
-                                                shuffle=True, num_workers=4)
-                for x in ['train', 'val', 'test']}
-    dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val', 'test']}
+    if return_val_set:
+        train_size = int(0.8 * len(all_train_data))
+        val_size = len(all_train_data) - train_size
+        train_set, val_set = torch.utils.data.random_split(all_train_data, [train_size, val_size])
+
+        image_datasets = {'train': train_set, 'val': val_set, 'test': test_set}
+        dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size,
+                                                    shuffle=True, num_workers=4)
+                                                    for x in ['train', 'val', 'test']}
+        dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val', 'test']}
+    else:
+        image_datasets = {'train': all_train_data, 'test': test_set}
+        dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size,
+                                                    shuffle=True, num_workers=4)
+                                                    for x in ['train', 'test']}
+        dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'test']}
 
     return dataloaders, dataset_sizes, class_names
 
