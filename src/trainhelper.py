@@ -59,6 +59,8 @@ def train_classifier_free_guidance(epochs, model, dataloader, optimizer, device,
     print("Finished training, saving model and losses")
     # Save model with timestamp
     torch.save(best_model_sd, str(results_folder / f"models/{model_name}-{timestamp}.pt"))
+    # Save optimizer with timestamp
+    torch.save(optimizer.state_dict(), str(results_folder / f"optimizers/{model_name}-{timestamp}.pt"))
     # Save losses with timestamp
     torch.save(losses, str(results_folder / f"losses/{model_name}-{timestamp}.pt"))
 

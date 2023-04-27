@@ -248,7 +248,7 @@ def load_downscaled_xray_data(datadir, batch_size=8, return_val_set=False, load_
     # shape of images = [b,c,w,h]
     mean, std = images.mean([0,2,3]), images.std([0,2,3])
     # Reload downscaled dataset with mean and std computed above
-    transform = get_downscale_transforms(mean, std, load_as_rgb=False)
+    transform = get_downscale_transforms(mean, std, load_as_rgb=load_as_rgb)
     return load_xray_data(datadir, transform, return_val_set=return_val_set, batch_size=batch_size, load_as_rgb=load_as_rgb)
 
 

@@ -27,7 +27,7 @@ def plot_generated_images(sampled_images, img_classes, label_map, save_path=None
         plt.close()
 
 
-def imshow(inp, mean, std, title=None):
+def imshow(inp, mean, std, title=None, save_path=None):
     """Imshow for Tensor."""
     inp = inp.numpy().transpose((1, 2, 0))
     inp = std * inp + mean
@@ -35,6 +35,12 @@ def imshow(inp, mean, std, title=None):
     plt.imshow(inp)
     if title is not None:
         plt.title(title)
+    
+    plt.axis('off')
+    plt.tight_layout()
+
+    if save_path:
+        plt.savefig(save_path)
 
 
 def show_misclassified_images(misclassified_images, class_names, mean, std, title, save_dir="plots"):
@@ -82,12 +88,12 @@ def visualize_model(model, dataloaders, class_names, device, num_images=6):
         model.train(mode=was_training)
 
 
-def plot_confusion_matrix(cm, title, labels, save_dir="plots"):
+def plot_confusion_matrix(cm, title, labels, overall_acc, save_dir="plots"):
     '''Plot confusion matrix'''
     df_cm = pd.DataFrame(cm, index = labels, columns = labels)
     plt.figure(figsize = (10,7))
     sns.heatmap(df_cm, xticklabels=True, yticklabels=True, annot=True, fmt='g', cmap='Blues')
-    plt.title(f"{title} Confusion Matrix on test data")
+    plt.title(f"{title} Confusion Matrix on test data, test acc: {overall_acc:.2f}%")
     plt.ylabel("True label")
     plt.xlabel("Predicted label")
     plt.tight_layout()
@@ -98,7 +104,7 @@ def plot_confusion_matrix(cm, title, labels, save_dir="plots"):
     plt.show()
 
 
-def show_test_summary_metrics(test_accuracy, per_class_acc, cm, precision, recall, fscore, title, class_names):
+def show_test_summary_metrics(test_accuracy, per_class_acc, cm, precision, recall, fscore, title, class_names, save_dir="plots"):
     sorted_by_acc = dict(sorted(per_class_acc.items(), key=lambda item: item[1]))
     for classname, accuracy in sorted_by_acc.items():
         print(f'Accuracy for class: {classname} is {accuracy:.1f} %')
@@ -108,7 +114,7 @@ def show_test_summary_metrics(test_accuracy, per_class_acc, cm, precision, recal
     print(f"Recall: {recall:.3f}")
     print(f"F1 score: {fscore:.3f}")
 
-    plot_confusion_matrix(cm, title, class_names)
+    plot_confusion_matrix(cm, title, class_names, test_accuracy, save_dir)
 
 
 def plot_training_metrics(trl, tra, tel, tea, title, save_dir="plots"):
@@ -120,7 +126,7 @@ def plot_training_metrics(trl, tra, tel, tea, title, save_dir="plots"):
 
     plt.plot(n, trl, label='train')
     plt.plot(n, tel, label='validation')
-    plt.title(f"Loss")
+    plt.title(f"Loss; best: {min(tel):.3f}")
     plt.xlabel("Epoch")
     plt.legend()
     plt.tight_layout()

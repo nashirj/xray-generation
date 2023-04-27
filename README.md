@@ -11,3 +11,13 @@ generative-adversarial-network.png source: https://www.kdnuggets.com/2017/01/gen
 
 # Diagrams
 https://www.figma.com/file/XhWmmWcprQTY6qwCUSqa54/Diagramming-101-(Community)-(Copy)?node-id=0-1&t=ANHMtjONbsxHJiRp-0
+
+
+
+
+TODOs:
+- clean repo
+- train diffusion model for longer
+- generate more images to train classifier
+- create directories for each label of generated image to make building training set more straightforward
+- MAKE SURE NO TEST DATA IS SEEN DURING DIFFUSION TRAINING
