@@ -16,10 +16,12 @@ def num_to_groups(num, divisor):
 
 def train_classifier_free_guidance(epochs, model, dataloader, optimizer, device, diffusion,
                                    results_folder, label_map, losses=[], log_every=100,
-                                   model_name="model", cond_scale=3.):
+                                   sample_every=5, model_name="model", cond_scale=3.,
+                                   n_classes=2):
     timestamp = int(time.time())
     timestamp = time.strftime('%m-%d-%Y--%H-%M', time.localtime(timestamp))
-    print(f"Starting training at {timestamp}")
+    print(f"Starting training at {timestamp}, sampling every {sample_every} epochs, "\
+          f"saving to {results_folder}")
 
     best_model_sd = model.state_dict()
     best_loss = float("inf")
@@ -47,10 +49,12 @@ def train_classifier_free_guidance(epochs, model, dataloader, optimizer, device,
             optimizer.step()
 
         losses.append(epoch_losses)
-        # After each epoch, save some generated images
-        sampled_images, image_classes = sample_n_images(diffusion, 10, 2, cond_scale)
-        save_path = results_folder / f"generated-images/{model_name}-{timestamp}-epoch-{epoch}.png"
-        viz.plot_generated_images(sampled_images, image_classes, label_map, save_path)
+
+        # Save 10 sampled images
+        if epoch > 0 and epoch % sample_every == 0:
+            sampled_images, image_classes = sample_n_images(diffusion, 10, n_classes, cond_scale)
+            save_path = results_folder / f"generated-images/{model_name}-{timestamp}-epoch-{epoch}.png"
+            viz.plot_generated_images(sampled_images, image_classes, label_map, save_path)
 
     print("Finished training, saving model and losses")
     # Save model with timestamp

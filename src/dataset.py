@@ -241,6 +241,17 @@ def compute_class_weights(labels):
     return torch.FloatTensor(class_weights)
 
 
+def load_downscaled_xray_data(datadir, batch_size=8, return_val_set=False, load_as_rgb=False):
+    dataloaders, _, _ = load_xray_data(datadir, return_val_set=return_val_set, batch_size=batch_size, load_as_rgb=load_as_rgb)
+    # Compute approximate mean and std of train dataset based on a single batch
+    images, _ = next(iter(dataloaders['train']))
+    # shape of images = [b,c,w,h]
+    mean, std = images.mean([0,2,3]), images.std([0,2,3])
+    # Reload downscaled dataset with mean and std computed above
+    transform = get_downscale_transforms(mean, std, load_as_rgb=False)
+    return load_xray_data(datadir, transform, return_val_set=return_val_set, batch_size=batch_size, load_as_rgb=load_as_rgb)
+
+
 if __name__ == '__main__':
     dataloaders, dataset_sizes, class_names = load_oversampled_xray_data()
     print('Train size: ', dataset_sizes['train'])
