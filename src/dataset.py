@@ -60,6 +60,58 @@ def get_downscale_transforms(mean, std, load_as_rgb=True):
         ]),
     }
 
+def get_downscale_transforms_for_diffusion(mean, std, load_as_rgb=True):
+    if load_as_rgb:
+        return {
+            'train': transforms.Compose([
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                transforms.Resize(28),
+                transforms.ToTensor(),
+                transforms.Normalize(mean, std)
+            ]),
+            'val': transforms.Compose([
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                transforms.Resize(28),
+                transforms.ToTensor(),
+                transforms.Normalize(mean, std)
+            ]),
+            'test': transforms.Compose([
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                transforms.Resize(28),
+                transforms.ToTensor(),
+                transforms.Normalize(mean, std)
+            ]),
+        }
+    return {
+        'train': transforms.Compose([
+            transforms.Grayscale(num_output_channels=1),
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.Resize(28),
+            transforms.ToTensor(),
+            transforms.Normalize(mean, std)
+        ]),
+        'val': transforms.Compose([
+            transforms.Grayscale(num_output_channels=1),
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.Resize(28),
+            transforms.ToTensor(),
+            transforms.Normalize(mean, std)
+        ]),
+        'test': transforms.Compose([
+            transforms.Grayscale(num_output_channels=1),
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.Resize(28),
+            transforms.ToTensor(),
+            transforms.Normalize(mean, std)
+        ]),
+    }
+
 # def get_augmented_transforms(mean, std):
 #     # Data augmentation and normalization for training
 #     # Just normalization for validation
@@ -109,6 +161,54 @@ def get_downscale_transforms(mean, std, load_as_rgb=True):
 #         ]),
 #     }
 #     return data_transforms
+
+
+def default_downscale_transforms(load_as_rgb=True):
+    if load_as_rgb:
+        return {
+            'train': transforms.Compose([
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                transforms.Resize(28),
+                transforms.ToTensor()
+            ]),
+            'val': transforms.Compose([
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                transforms.Resize(28),
+                transforms.ToTensor()
+            ]),
+            'test': transforms.Compose([
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                transforms.Resize(28),
+                transforms.ToTensor()
+            ]),
+        }
+    return {
+        'train': transforms.Compose([
+            transforms.Grayscale(num_output_channels=1),
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.Resize(28),
+            transforms.ToTensor()
+        ]),
+        'val': transforms.Compose([
+            transforms.Grayscale(num_output_channels=1),
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.Resize(28),
+            transforms.ToTensor()
+        ]),
+        'test': transforms.Compose([
+            transforms.Grayscale(num_output_channels=1),
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.Resize(28),
+            transforms.ToTensor()
+        ]),
+    }
+
 
 
 def default_transform(load_as_rgb=True):
@@ -197,7 +297,7 @@ def load_xray_data(data_dir='data/chest_xray', data_transforms=None, batch_size=
     initial_train_set = datasets.ImageFolder(os.path.join(data_dir, 'train'), data_transforms['train'])
     class_names = initial_train_set.classes
     initial_val_set = datasets.ImageFolder(os.path.join(data_dir, 'val'), data_transforms['val'])
-    test_set = datasets.ImageFolder(os.path.join(data_dir, 'test'), data_transforms['val'])
+    test_set = datasets.ImageFolder(os.path.join(data_dir, 'test'), data_transforms['test'])
 
     # Redistribute training/validation samples to increase the size of the validation set
     # such that 80% of the data is used for training and 20% for validation
@@ -241,14 +341,18 @@ def compute_class_weights(labels):
     return torch.FloatTensor(class_weights)
 
 
-def load_downscaled_xray_data(datadir, batch_size=8, return_val_set=False, load_as_rgb=False):
-    dataloaders, _, _ = load_xray_data(datadir, return_val_set=return_val_set, batch_size=batch_size, load_as_rgb=load_as_rgb)
+def load_downscaled_xray_data(datadir, for_diffusion=False, batch_size=8, return_val_set=False, load_as_rgb=False):
+    transform = default_downscale_transforms(load_as_rgb=load_as_rgb)
+    dataloaders, _, _ = load_xray_data(datadir, data_transforms=transform, return_val_set=return_val_set, batch_size=batch_size, load_as_rgb=load_as_rgb)
     # Compute approximate mean and std of train dataset based on a single batch
     images, _ = next(iter(dataloaders['train']))
     # shape of images = [b,c,w,h]
     mean, std = images.mean([0,2,3]), images.std([0,2,3])
     # Reload downscaled dataset with mean and std computed above
-    transform = get_downscale_transforms(mean, std, load_as_rgb=load_as_rgb)
+    if for_diffusion:
+        transform = get_downscale_transforms_for_diffusion(mean, std, load_as_rgb=load_as_rgb)
+    else:
+        transform = get_downscale_transforms(mean, std, load_as_rgb=load_as_rgb)
     return load_xray_data(datadir, transform, return_val_set=return_val_set, batch_size=batch_size, load_as_rgb=load_as_rgb)
 
 
