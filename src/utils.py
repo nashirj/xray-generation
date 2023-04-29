@@ -4,6 +4,14 @@ from src import dataset
 from src import datahelper as dh
 
 
+def flatten_list(l):
+    return [item for sublist in l for item in sublist]
+
+
+def average_nested_lists(l):
+    return [sum(x) / len(x) for x in l]
+
+
 def save_n_images_from_dataloader(dataloader, n, save_dir, image_key=0, label_key=1):
     # Save n images from the provided dataloader to specified path
     n_saved = 0
