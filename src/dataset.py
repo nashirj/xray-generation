@@ -98,7 +98,7 @@ def original_scale_normalized_augmented_transforms(mean, std):
 def downscaled_default_diffusion_transforms():
     """Used for already downscaled synthetic data for classifiers.
     
-    ResNet expects RGB, so we repeat the grayscale image 3 times.
+    ResNet expects RGB.
 
     Returns: dictionary of transforms for the train, and val sets.
 
@@ -106,11 +106,7 @@ def downscaled_default_diffusion_transforms():
     """
     return {
         'train': transforms.Compose([
-            transforms.Lambda(lambda x: x.repeat(3, 1, 1) if x.size(0) == 1 else x),
-            transforms.ToTensor()
-        ]),
-        'val': transforms.Compose([
-            transforms.Lambda(lambda x: x.repeat(3, 1, 1) if x.size(0) == 1 else x),
+            # transforms.Lambda(lambda x: x.repeat(3, 1, 1) if x.size(0) == 1 else x),
             transforms.ToTensor()
         ]),
     }
@@ -119,7 +115,7 @@ def downscaled_default_diffusion_transforms():
 def downscaled_normalized_diffusion_transforms(mean, std):
     """Used for already downscaled synthetic data for classifiers.
 
-    ResNet expects RGB, so we repeat the grayscale image 3 times.
+    ResNet expects RGB.
 
     Returns: dictionary of transforms for the train, and val sets.
 
@@ -127,12 +123,7 @@ def downscaled_normalized_diffusion_transforms(mean, std):
     """
     return {
         'train': transforms.Compose([
-            transforms.Lambda(lambda x: x.repeat(3, 1, 1) if x.size(0) == 1 else x),
-            transforms.ToTensor(),
-            transforms.Normalize(mean, std)
-        ]),
-        'val': transforms.Compose([
-            transforms.Lambda(lambda x: x.repeat(3, 1, 1) if x.size(0) == 1 else x),
+            # transforms.Lambda(lambda x: x.repeat(3, 1, 1) if x.size(0) == 1 else x),
             transforms.ToTensor(),
             transforms.Normalize(mean, std)
         ]),
@@ -153,12 +144,7 @@ def downscaled_normalized_augmented_diffusion_transforms(mean, std):
         'train': transforms.Compose([
             transforms.RandomHorizontalFlip(),
             transforms.RandomAffine(degrees=30, translate=(0.1, 0.1)),
-            transforms.Lambda(lambda x: x.repeat(3, 1, 1) if x.size(0) == 1 else x),
-            transforms.ToTensor(),
-            transforms.Normalize(mean, std)
-        ]),
-        'val': transforms.Compose([
-            transforms.Lambda(lambda x: x.repeat(3, 1, 1) if x.size(0) == 1 else x),
+            # transforms.Lambda(lambda x: x.repeat(3, 1, 1) if x.size(0) == 1 else x),
             transforms.ToTensor(),
             transforms.Normalize(mean, std)
         ]),
@@ -398,22 +384,22 @@ def load_diffusion_xray_data(diff_dir, data_dir, diff_transform, real_transforms
 
 def load_diffusion_normalized_xray_data(diff_dir, data_dir, with_augmentation=False, batch_size=8):
     """Load diffusion + real data for clf; normalize using diffusion data mean and std."""
-    diff_transform = downscaled_default_diffusion_transforms(load_as_rgb=True)
+    diff_transform = downscaled_default_diffusion_transforms()
     real_transform = downscaling_default_transforms(load_as_rgb=True)
     dataloaders, _, _ = load_diffusion_xray_data(diff_dir, data_dir, diff_transform,
                                                  real_transform, batch_size)
 
-    print(diff_transform)
-    print(real_transform)
-
+    # Compute mean and std of the diffusion data
     mean, std = compute_mean_and_std(dataloaders['train'])
+
     # Reload downscaled dataset with mean and std computed above
     if with_augmentation:
-        diff_transform = downscaled_normalized_augmented_diffusion_transforms(mean, std,
-                                                                              load_as_rgb=True)
+        diff_transform = downscaled_normalized_augmented_diffusion_transforms(mean, std)
     else:
-        diff_transform = downscaled_normalized_diffusion_transforms(mean, std, load_as_rgb=True)
+        diff_transform = downscaled_normalized_diffusion_transforms(mean, std)
+    
     real_transform = downscaling_normalized_transforms(mean, std, load_as_rgb=True)
+
     return load_diffusion_xray_data(diff_dir, data_dir, diff_transform, real_transform, batch_size)
 
 
