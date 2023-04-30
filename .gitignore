@@ -1,4 +1,12 @@
 __pycache__
 models/
-results/
+
+results/diffusion/models/
+results/diffusion/losses/
+results/diffusion/optimizers/
+
+results/classification/models/
+results/classification/metrics/
+results/classification/optimizers/
+
 data/
