@@ -12,13 +12,13 @@ from src import utils
 
 
 # Set random seed so that held out test data is same for all created datasets
-torch.manual_seed(86)
-random.seed(86)
-np.random.seed(86)
+torch.manual_seed(71)
+random.seed(71)
+np.random.seed(71)
 # Set generator manual seed to preserve reproducibility
 # https://pytorch.org/docs/stable/notes/randomness.html#dataloader
 g = torch.Generator()
-g.manual_seed(86)
+g.manual_seed(71)
 
 
 def seed_worker(worker_id):
@@ -435,7 +435,7 @@ def load_real_downscaled_normalized_xray_data(data_dir, with_augmentation=False,
     mean, std = compute_mean_and_std(dataloaders['train'])
     # Reload downscaled dataset with mean and std computed above
     if with_augmentation:
-        transform = downscaling_normalized_augmented_transforms(mean, std, load_as_rgb=load_as_rgb)
+        transform = downscaling_normalized_augmented_transforms(mean, std)
     else:
         transform = downscaling_normalized_transforms(mean, std, load_as_rgb=load_as_rgb)
     return load_real_xray_data(data_dir, transform, batch_size=batch_size, return_val_set=return_val_set)
