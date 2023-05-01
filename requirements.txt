@@ -4,5 +4,8 @@ torch
 torchvision
 matplotlib
 pytorch-fid==0.3.0
+pytorch-msssim
 scikit-learn
 seaborn
+torch-fidelity-0.3.0
+torchmetrics-0.11.4
