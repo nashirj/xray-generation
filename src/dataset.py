@@ -1,12 +1,30 @@
 """This code originally from my assignment 1, CAP 5516"""
 import os
+import random
 
+import numpy as np
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import torch
 from torch.utils.data import WeightedRandomSampler
 
 from src import utils
+
+
+# Set random seed so that held out test data is same for all created datasets
+torch.manual_seed(86)
+random.seed(86)
+np.random.seed(86)
+# Set generator manual seed to preserve reproducibility
+# https://pytorch.org/docs/stable/notes/randomness.html#dataloader
+g = torch.Generator()
+g.manual_seed(86)
+
+
+def seed_worker(worker_id):
+    worker_seed = torch.initial_seed() % 2**32
+    np.random.seed(worker_seed)
+    random.seed(worker_seed)
 
 
 def original_scale_default_transforms():
@@ -312,13 +330,16 @@ def load_oversampled_real_xray_data(data_dir, data_transforms, batch_size=4):
     class_weights = [sum(counts) / c for c in counts]
     weight = [class_weights[t] for t in train_labels]
     sampler = WeightedRandomSampler(weight, len(train_labels))
-    
+
     train_dataloader = torch.utils.data.DataLoader(
-        train_data, batch_size=batch_size, num_workers=4, sampler=sampler)
+        train_data, batch_size=batch_size, num_workers=4, sampler=sampler,
+        worker_init_fn=seed_worker, generator=g)
     val_dataloader = torch.utils.data.DataLoader(
-        val_data, batch_size=batch_size, shuffle=True, num_workers=4)
+        val_data, batch_size=batch_size, shuffle=True, num_workers=4,
+        worker_init_fn=seed_worker, generator=g)
     test_dataloader = torch.utils.data.DataLoader(
-        test_set, batch_size=batch_size, shuffle=True, num_workers=4)
+        test_set, batch_size=batch_size, shuffle=True, num_workers=4,
+        worker_init_fn=seed_worker, generator=g)
     
     dataloaders = {'train': train_dataloader, 'val': val_dataloader, 'test': test_dataloader}
     dataset_sizes = {'train': len(train_data), 'val': len(val_data), 'test': len(test_set)}
@@ -341,13 +362,15 @@ def load_real_xray_data(data_dir, data_transforms, batch_size=1, return_val_set=
 
         image_datasets = {'train': train_set, 'val': val_set, 'test': test_set}
         dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size,
-                                                    shuffle=True, num_workers=4)
+                                                    shuffle=True, num_workers=4,
+                                                    worker_init_fn=seed_worker, generator=g)
                                                     for x in ['train', 'val', 'test']}
         dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val', 'test']}
     else:
         image_datasets = {'train': all_train_data, 'test': test_set}
         dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size,
-                                                    shuffle=True, num_workers=4)
+                                                    shuffle=True, num_workers=4,
+                                                    worker_init_fn=seed_worker, generator=g)
                                                     for x in ['train', 'test']}
         dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'test']}
 
@@ -375,7 +398,8 @@ def load_diffusion_xray_data(diff_dir, data_dir, diff_transform, real_transforms
 
     image_datasets = {'train': diff_train_data, 'val': real_val_set, 'test': real_test_set}
     dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=batch_size,
-                                                shuffle=True, num_workers=4)
+                                                  shuffle=True, num_workers=4,
+                                                  worker_init_fn=seed_worker, generator=g)
                                                 for x in ['train', 'val', 'test']}
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val', 'test']}
 
