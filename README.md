@@ -21,3 +21,20 @@ TODOs:
 - generate more images to train classifier
 - create directories for each label of generated image to make building training set more straightforward
 - MAKE SURE NO TEST DATA IS SEEN DURING DIFFUSION TRAINING
+
+
+
+# notes
+want to make it clear that diffusion beats traditional data augmentation
+
+also make the point about diffusion being useful for addressing class imbalance problem
+quantify the comparison of normal balancing (oversampling, class weighting) vs. diffusion data balancing
+
+add SSIM
+
+try to compare to others if possible, conditional gan, conditional vae
+
+include tables
+include different data splits, fully synthetic vs all normal vs split, for varying numbers of samples
+
+train on general synthetic dataset, then fine tune on local patient data on a per institution basis
